@@ -1,0 +1,168 @@
+<resources>
+    <string name="app_name">AI Voice Studio</string>
+    <string name="developer_tagline">Created by Asif Qureshi</string>
+    <string name="app_tagline">Next-Generation AI Speech &amp; Voice Synthesis</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_title_1">Lifelike AI Voices</string>
+    <string name="onboarding_desc_1">Generate incredibly natural, human-like speech in seconds powered by industry-leading ElevenLabs voice models.</string>
+    <string name="onboarding_title_2">50+ Voices &amp; 29 Languages</string>
+    <string name="onboarding_desc_2">Fine-tune stability, style exaggeration, emotion, speed, and accents across global languages and character styles.</string>
+    <string name="onboarding_title_3">Multi-Speaker &amp; Audio Studio</string>
+    <string name="onboarding_desc_3">Create dialogue scenes, long-form audiobook narrations, trim and mix with background music, and export in studio quality.</string>
+
+    <!-- Auth -->
+    <string name="auth_welcome_back">Welcome Back</string>
+    <string name="auth_sign_in_subtitle">Sign in to access your AI Voice Studio projects and credits</string>
+    <string name="auth_email_hint">Email address</string>
+    <string name="auth_password_hint">Password</string>
+    <string name="auth_confirm_password_hint">Confirm password</string>
+    <string name="auth_full_name_hint">Full name</string>
+    <string name="auth_remember_me">Remember me</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_sign_up">Create Account</string>
+    <string name="auth_no_account">Don\'t have an account? Sign Up</string>
+    <string name="auth_have_account">Already have an account? Sign In</string>
+    <string name="auth_terms_agreement">I agree to the Terms of Service and Privacy Policy</string>
+    <string name="auth_demo_fill">Demo Quick-Login</string>
+    <string name="auth_guest_continue">Continue as Studio Guest</string>
+    <string name="auth_error_empty">Please fill in all required fields</string>
+    <string name="auth_error_invalid_email">Please enter a valid email address</string>
+    <string name="auth_error_password_length">Password must be at least 6 characters</string>
+    <string name="auth_error_password_match">Passwords do not match</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_create">Generate</string>
+    <string name="nav_voices">Voices</string>
+    <string name="nav_library">Library</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Home Dashboard -->
+    <string name="home_greeting">Hello, %1$s</string>
+    <string name="home_quota_title">Studio Characters &amp; Credits</string>
+    <string name="home_quota_plan">PRO CREATOR PLAN</string>
+    <string name="home_quota_stat">%1$s / %2$s characters used</string>
+    <string name="home_quick_actions">Creative Studios</string>
+    <string name="home_action_tts">Speech Studio</string>
+    <string name="home_action_tts_desc">Convert script to speech</string>
+    <string name="home_action_dialogue">Dialogue Studio</string>
+    <string name="home_action_dialogue_desc">Multi-speaker scenes</string>
+    <string name="home_action_long_script">Long Narration</string>
+    <string name="home_action_long_script_desc">Books &amp; long scripts</string>
+    <string name="home_action_audio_editor">Audio Studio</string>
+    <string name="home_action_audio_editor_desc">Trim, mix &amp; export</string>
+    <string name="home_action_clone">Voice Cloning</string>
+    <string name="home_action_clone_desc">Design &amp; authorized clone</string>
+    <string name="home_recent_projects">Recent Generations</string>
+    <string name="home_featured_voices">Trending Voices</string>
+    <string name="home_view_all">View All</string>
+    <string name="home_status_connected">ElevenLabs Engine Ready</string>
+
+    <!-- TTS Screen -->
+    <string name="tts_title">Text-to-Speech Studio</string>
+    <string name="tts_input_hint">Type or paste your script here… e.g., Welcome to AI Voice Studio, where cutting-edge artificial intelligence transforms words into rich, emotive spoken audio.</string>
+    <string name="tts_char_counter">%1$d / %2$d chars</string>
+    <string name="tts_voice_btn_label">Selected Voice</string>
+    <string name="tts_settings_btn">Voice Settings</string>
+    <string name="tts_btn_generate">Generate Speech</string>
+    <string name="tts_btn_generating">Synthesizing Audio…</string>
+    <string name="tts_sample_scripts">Sample Templates</string>
+    <string name="tts_import_file">Import .txt</string>
+    <string name="tts_clear_text">Clear</string>
+    <string name="tts_stability_label">Stability (%1$d%%)</string>
+    <string name="tts_similarity_label">Clarity + Similarity (%1$d%%)</string>
+    <string name="tts_style_label">Style Exaggeration (%1$d%%)</string>
+    <string name="tts_speed_label">Playback Speed (%1$.1fx)</string>
+    <string name="tts_speaker_boost">Speaker Boost</string>
+    <string name="tts_model_label">Voice Model</string>
+    <string name="tts_format_label">Output Format</string>
+
+    <!-- Voice Library -->
+    <string name="voices_title">Voice Discovery</string>
+    <string name="voices_search_hint">Search voices, accents, categories…</string>
+    <string name="voices_filter_all">All</string>
+    <string name="voices_filter_narration">Narration</string>
+    <string name="voices_filter_conversational">Conversational</string>
+    <string name="voices_filter_news">News</string>
+    <string name="voices_filter_characters">Characters</string>
+    <string name="voices_filter_social">Social Media</string>
+    <string name="voices_use_voice">Use Voice</string>
+    <string name="voices_preview">Preview</string>
+    <string name="voices_empty">No voices found matching your query</string>
+
+    <!-- Dialogue -->
+    <string name="dialogue_title">Multi-Speaker Dialogue</string>
+    <string name="dialogue_add_speaker">+ Add Speaker</string>
+    <string name="dialogue_add_line">+ Add Dialogue Line</string>
+    <string name="dialogue_generate_all">Synthesize Full Dialogue</string>
+    <string name="dialogue_empty">Add speakers and lines to create a dramatic multi-voice conversation</string>
+
+    <!-- Long Script -->
+    <string name="long_script_title">Long Script Studio</string>
+    <string name="long_script_desc">Automatically segments long books and YouTube scripts at natural paragraph boundaries and stitches audio seamlessly.</string>
+    <string name="long_script_segment_btn">Segment &amp; Prepare Chunks</string>
+    <string name="long_script_generate_all">Batch Synthesize Chunks</string>
+
+    <!-- Audio Player & Studio -->
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_download">Download MP3</string>
+    <string name="player_share">Share Audio</string>
+    <string name="player_edit">Open in Audio Studio</string>
+    <string name="studio_title">Audio Studio &amp; Trimmer</string>
+    <string name="studio_trim_title">Trim &amp; Cut Segment</string>
+    <string name="studio_music_overlay">Background Music Mix</string>
+    <string name="studio_music_volume">Music Volume</string>
+    <string name="studio_export_btn">Export Master Audio</string>
+
+    <!-- Library & History -->
+    <string name="library_title">Project Library</string>
+    <string name="library_tab_all">All Projects</string>
+    <string name="library_tab_audio">Audio Files</string>
+    <string name="library_tab_favorites">Favorites</string>
+    <string name="library_empty_title">No projects yet</string>
+    <string name="library_empty_desc">Generate speech in the Studio to save audio recordings and projects here.</string>
+
+    <!-- Profile & Settings -->
+    <string name="profile_title">Studio Account</string>
+    <string name="profile_plan_badge">PRO SUBSCRIBER</string>
+    <string name="profile_edit">Edit Profile</string>
+    <string name="profile_subscription">Subscription Plans</string>
+    <string name="profile_settings">Settings &amp; API Configuration</string>
+    <string name="profile_admin">Admin Console</string>
+    <string name="profile_sign_out">Sign Out</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_api_config">API &amp; Backend Configuration</string>
+    <string name="settings_backend_url">Backend Server URL</string>
+    <string name="settings_api_key">ElevenLabs API Key (Direct Mode)</string>
+    <string name="settings_api_key_desc">Optional: If set, client makes direct authenticated calls or test requests</string>
+    <string name="settings_theme">App Theme</string>
+    <string name="settings_theme_dark">Dark (Default)</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_save">Save Settings</string>
+    <string name="settings_clear_cache">Clear Audio Cache</string>
+    <string name="settings_privacy">Privacy Policy</string>
+    <string name="settings_terms">Terms of Service</string>
+
+    <!-- Admin -->
+    <string name="admin_title">System &amp; Admin Console</string>
+    <string name="admin_api_health">Provider Status: ACTIVE</string>
+    <string name="admin_quota_details">ElevenLabs Tier: Creator Tier (100k chars/mo)</string>
+    <string name="admin_stats_title">Studio Telemetry</string>
+
+    <!-- Dialogs & Feedback -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_success">Success</string>
+    <string name="common_error">Error</string>
+    <string name="common_retry">Retry</string>
+    <string name="toast_download_success">Audio saved to Downloads!</string>
+    <string name="toast_copied">Copied to clipboard</string>
+    <string name="toast_error_quota">Character quota exceeded. Please upgrade plan or configure custom API key.</string>
+</resources>
