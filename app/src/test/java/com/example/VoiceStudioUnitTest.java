@@ -48,4 +48,28 @@ public class VoiceStudioUnitTest {
         settings.setSpeed(0.1f);
         assertTrue(settings.getSpeed() >= 0.5f);
     }
+
+    @Test
+    public void testElevenLabsServiceMethods() throws NoSuchMethodException {
+        Class<?> serviceClass = com.asifqureshi.aivoicestudio.data.network.ElevenLabsService.class;
+        assertTrue(serviceClass.isInterface());
+        assertNotNull(serviceClass.getMethod("generateTextToSpeech", String.class, String.class, String.class, com.asifqureshi.aivoicestudio.data.models.GenerationRequest.class));
+        assertNotNull(serviceClass.getMethod("generateSpeech", String.class, String.class, com.asifqureshi.aivoicestudio.data.models.GenerationRequest.class));
+    }
+
+    @Test
+    public void testOpenRouterRequestModel() {
+        com.asifqureshi.aivoicestudio.data.models.OpenRouterRequest req = new com.asifqureshi.aivoicestudio.data.models.OpenRouterRequest("deepgram/flux-tts:free", "Hello OpenRouter", "aura-asteria-en", "mp3");
+        assertEquals("deepgram/flux-tts:free", req.getModel());
+        assertEquals("Hello OpenRouter", req.getInput());
+        assertEquals("aura-asteria-en", req.getVoice());
+        assertEquals("mp3", req.getResponseFormat());
+    }
+
+    @Test
+    public void testOpenRouterServiceMethods() throws NoSuchMethodException {
+        Class<?> serviceClass = com.asifqureshi.aivoicestudio.data.network.OpenRouterService.class;
+        assertTrue(serviceClass.isInterface());
+        assertNotNull(serviceClass.getMethod("generateOpenRouterSpeech", String.class, com.asifqureshi.aivoicestudio.data.models.OpenRouterRequest.class));
+    }
 }

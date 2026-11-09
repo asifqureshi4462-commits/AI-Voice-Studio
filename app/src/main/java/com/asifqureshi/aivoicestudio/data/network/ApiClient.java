@@ -13,7 +13,22 @@ public class ApiClient {
     private static Retrofit retrofit = null;
     private static String currentBaseUrl = "";
 
+    public static synchronized ElevenLabsService getElevenLabsService(Context context) {
+        ensureRetrofit(context);
+        return retrofit.create(ElevenLabsService.class);
+    }
+
+    public static synchronized OpenRouterService getOpenRouterService(Context context) {
+        ensureRetrofit(context);
+        return retrofit.create(OpenRouterService.class);
+    }
+
     public static synchronized ElevenLabsApiService getService(Context context) {
+        ensureRetrofit(context);
+        return retrofit.create(ElevenLabsApiService.class);
+    }
+
+    private static void ensureRetrofit(Context context) {
         PreferencesManager prefs = new PreferencesManager(context);
         String baseUrl = prefs.getBackendUrl();
         if (baseUrl == null || baseUrl.trim().isEmpty()) {
@@ -42,8 +57,6 @@ public class ApiClient {
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
-
-        return retrofit.create(ElevenLabsApiService.class);
     }
 
     public static synchronized void resetClient() {
