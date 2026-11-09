@@ -6,6 +6,14 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- Base CardView Style for AI Voice Studio -->
+    <style name="Widget.AIVoiceStudio.CardView" parent="Widget.Material3.CardView.Filled">
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/stroke_subtle</item>
+        <item name="cardBackgroundColor">@color/bg_card</item>
+    </style>
+
     <!-- Elevated Card Style for AI Voice Studio -->
     <style name="Widget.AIVoiceStudio.ElevatedCard" parent="Widget.Material3.CardView.Elevated">
         <item name="cardElevation">2dp</item>
