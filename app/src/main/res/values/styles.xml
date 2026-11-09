@@ -1,36 +1,224 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Typography Styles -->
-    <style name="Text.Section" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textColor">@color/app_text_primary</item>
-        <item name="android:textStyle">bold</item>
-    </style>
+    <!-- App Details -->
+    <string name="app_name">AI Voice Studio</string>
+    <string name="developer_name">Asif Qureshi</string>
 
-    <!-- Base CardView Style for AI Voice Studio -->
-    <style name="Widget.AIVoiceStudio.CardView" parent="Widget.Material3.CardView.Filled">
-        <item name="cardElevation">0dp</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="strokeColor">@color/stroke_subtle</item>
-        <item name="cardBackgroundColor">@color/bg_card</item>
-    </style>
+    <!-- Navigation Tabs -->
+    <string name="nav_home">Home</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_voices">Voices</string>
+    <string name="nav_library">Library</string>
+    <string name="nav_profile">Profile</string>
 
-    <!-- Elevated Card Style for AI Voice Studio -->
-    <style name="Widget.AIVoiceStudio.ElevatedCard" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardElevation">2dp</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="strokeColor">@color/stroke_subtle</item>
-        <item name="cardBackgroundColor">@color/bg_card</item>
-    </style>
+    <!-- Common UI Actions -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="clear">Clear</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="retry">Retry</string>
+    <string name="back">Back</string>
+    <string name="continue_label">Continue</string>
+    <string name="search">Search…</string>
+    <string name="rename">Rename</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="selected">Selected</string>
+    <string name="welcome">Welcome to AI Voice Studio</string>
 
-    <!-- Primary Action Button Style -->
-    <style name="Widget.AIVoiceStudio.PrimaryButton" parent="Widget.Material3.Button">
-        <item name="android:textColor">#04121A</item>
-        <item name="backgroundTint">@color/brand_cyan</item>
-        <item name="cornerRadius">12dp</item>
-    </style>
+    <!-- Missing History Item Action Strings -->
+    <string name="download">Download</string>
+    <string name="regenerate">Regenerate</string>
+    <string name="share">Share</string>
 
-    <!-- Bottom Sheet Theme -->
-    <style name="CustomBottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/Widget.Material3.BottomSheet</item>
-    </style>
+    <!-- Missing Voice Library Layout Strings -->
+    <string name="voices_title">Voice Library</string>
+    <string name="search_voices">Search voices…</string>
+    <string name="favourites_only">Favourites only</string>
+    <string name="filter_all">All</string>
+    <string name="filter_premade">Premade</string>
+    <string name="filter_professional">Professional</string>
+    <string name="filter_cloned">Cloned</string>
+    <string name="filter_generated">Generated</string>
+
+    <!-- Missing TTS Fragment Layout Strings -->
+    <string name="tts_title">Text to Speech</string>
+    <string name="tts_input_hint">Type or paste text here…</string>
+    <string name="tts_voice_btn_label">Select Voice</string>
+    <string name="tts_settings_btn">Voice Settings</string>
+    <string name="tts_btn_generate">Generate Speech</string>
+    <string name="tts_btn_generating">Generating…</string>
+    <string name="tts_clear_text">Clear</string>
+    <string name="tts_import_file">Import .txt</string>
+    <string name="tts_sample_scripts">Sample Scripts</string>
+    <string name="tts_speaker_boost">Speaker Boost</string>
+    <string name="tts_char_count_format">%1$d / %2$d chars</string>
+    <string name="tts_result_title">Generated Audio</string>
+    <string name="tts_btn_open_studio">Studio Edit</string>
+
+    <!-- Auth Strings -->
+    <string name="login">Sign In</string>
+    <string name="signup">Sign Up</string>
+    <string name="logout">Sign out</string>
+    <string name="logout_message">Are you sure you want to sign out?</string>
+    <string name="delete_account">Delete account</string>
+    <string name="delete_account_message">This permanently deletes your account, scripts, and audio generations. This action cannot be undone.</string>
+    <string name="confirm_password_title">Confirm your password</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full name</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="change_password">Change password</string>
+    <string name="session_expired">Your session expired. Please sign in again.</string>
+    <string name="email_verified">Email verified successfully! You can now sign in.</string>
+    <string name="verification_resent">Verification code resent to your email.</string>
+    <string name="password_reset_done">Your password has been reset. Please sign in.</string>
+    <string name="password_changed_signin">Password changed successfully. Please sign in again.</string>
+    <string name="account_deleted">Your account has been deleted.</string>
+    <string name="profile_updated">Profile updated.</string>
+    <string name="reset_code_sent">A reset code has been generated. Check your email or enter your code below.</string>
+    <string name="mail_not_configured">Email delivery is not configured on the server yet. Please enter your code or contact your administrator.</string>
+    <string name="verify_sent_to">A verification code was sent to %s.</string>
+
+    <!-- Validation Errors -->
+    <string name="error_name">Please enter a valid name (1–80 characters).</string>
+    <string name="error_email">Please enter a valid email address.</string>
+    <string name="error_password_required">Password is required.</string>
+    <string name="error_password_weak">Password must be at least 8 characters with at least one letter and one number.</string>
+    <string name="error_password_mismatch">Passwords do not match.</string>
+    <string name="error_terms">You must accept the Terms of Service to continue.</string>
+    <string name="error_code">Please enter the full code.</string>
+    <string name="error_no_voice">Please select a voice first.</string>
+    <string name="error_no_text">Please enter text to generate speech.</string>
+    <string name="error_text_too_long">Text exceeds the limit (%d characters).</string>
+
+    <!-- Greetings & Status -->
+    <string name="greeting_morning">Good morning, %s</string>
+    <string name="greeting_afternoon">Good afternoon, %s</string>
+    <string name="greeting_evening">Good evening, %s</string>
+    <string name="usage_detail">Used %1$,d of %2$,d characters (%3$,d remaining) · %4$d generations</string>
+    <string name="usage_unavailable">Usage stats currently unavailable.</string>
+    <string name="account_status">Status: %1$s · Plan: %2$s</string>
+    <string name="verified">Verified</string>
+    <string name="not_verified">Not verified</string>
+    <string name="profile_stats">%1$d Projects · %2$d Generations · %3$d Favorite Voices</string>
+
+    <!-- Create & TTS Screen -->
+    <string name="no_voice_selected">No voice selected</string>
+    <string name="generating_status">Synthesizing audio…</string>
+    <string name="char_counter">%1$d / %2$d</string>
+    <string name="language_auto">Auto-detect language</string>
+    <string name="draft_saved">Draft saved on this device.</string>
+    <string name="no_draft">No draft saved yet.</string>
+    <string name="restore_draft">Restore draft?</string>
+    <string name="restore_draft_message">Replace the current text with your saved draft?</string>
+    <string name="restore">Restore</string>
+    <string name="clear_text_title">Clear text?</string>
+    <string name="clear_text_message">Are you sure you want to clear the editor?</string>
+    <string name="clipboard_empty">Clipboard is empty.</string>
+    <string name="import_failed">Failed to read the imported file.</string>
+    <string name="import_too_long">Imported text was truncated to %d characters.</string>
+    <string name="models_unavailable">Models could not be loaded: %s</string>
+    <string name="retry_after">Retry after %d seconds.</string>
+    <string name="saved_to_library">Saved to projects library.</string>
+    <string name="save_to_library">Save project</string>
+    <string name="project_name">Project name</string>
+    <string name="meta_line">%1$s · %2$s · %3$d chars · %4$s · %5$s</string>
+    <string name="usage_remaining">%1$,d characters remaining this month</string>
+
+    <!-- Voice Library Screen -->
+    <string name="use_voice">Use voice</string>
+    <string name="preview_failed">Failed to play preview audio.</string>
+    <string name="no_voices_found">No voices found matching your search.</string>
+    <string name="no_favourite_voices_loaded">No favorite voices saved yet.</string>
+    <string name="add_favourite">Add to favourites</string>
+    <string name="remove_favourite">Remove from favourites</string>
+    <string name="sort_by">Sort voices by</string>
+    <string name="sort_name_asc">Name (A–Z)</string>
+    <string name="sort_name_desc">Name (Z–A)</string>
+    <string name="sort_newest">Newest first</string>
+    <string name="languages_label">Languages: %s</string>
+
+    <!-- Library & Projects Screen -->
+    <string name="history_empty">No audio generations yet. Go to Create to generate your first voice track.</string>
+    <string name="projects_empty">No saved projects yet.</string>
+    <string name="no_text_preview">No text preview available</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_processing">Processing</string>
+    <string name="chars_count">%d chars</string>
+    <string name="audio_files_count">%d audio files</string>
+    <string name="project_meta">%1$s · %2$s</string>
+    <string name="project_meta_draft">%1$s (Draft) · %2$s</string>
+    <string name="delete_audio_title">Delete generation?</string>
+    <string name="delete_audio_message">This will remove this generation and its stored audio file.</string>
+    <string name="delete_project_title">Delete project?</string>
+    <string name="delete_project_message">Are you sure you want to delete "%s"?</string>
+    <string name="export_saved">Audio exported successfully.</string>
+    <string name="export_failed">Failed to export audio file.</string>
+    <string name="share_audio">Share audio file</string>
+    <string name="no_app_to_share">No app available to share audio.</string>
+
+    <!-- Settings Screen -->
+    <string name="settings">Settings</string>
+    <string name="setting_theme">Theme</string>
+    <string name="setting_provider">Voice provider</string>
+    <string name="setting_default_voice">Default voice</string>
+    <string name="setting_default_model">Default model</string>
+    <string name="setting_default_format">Default output format</string>
+    <string name="setting_server">Server address</string>
+    <string name="setting_cache">Audio cache</string>
+    <string name="terms">Terms of Service</string>
+    <string name="privacy">Privacy Policy</string>
+    <string name="open_source_licenses">Open source licences</string>
+    <string name="app_version">Version</string>
+    <string name="developer">Developer</string>
+    <string name="none_set">None set</string>
+    <string name="automatic">Automatic</string>
+    <string name="not_configured">Not configured</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="server_default">Server default</string>
+    <string name="server_default_with">Server default (%s)</string>
+    <string name="provider_changed">Voice provider updated.</string>
+    <string name="no_provider_configured">No voice provider configured on server.</string>
+    <string name="default_voice_hint">Select a voice in the Voices tab to set it as default.</string>
+    <string name="clear_default_voice_message">Clear the saved default voice?</string>
+    <string name="clear_cache_message">Clear all cached audio files from this device?</string>
+    <string name="server_settings">Server settings</string>
+    <string name="server_settings_help">Enter your backend HTTPS URL (e.g. https://api.example.com/). HTTP is only permitted for local addresses.</string>
+    <string name="server_url_hint">Backend URL</string>
+    <string name="server_url_invalid">Please enter a valid URL (must start with https://).</string>
+
+    <!-- Player & Format Strings -->
+    <string name="speed_format">%.2fx</string>
+    <string name="playback_error">Playback error occurred.</string>
+
+    <!-- Onboarding Flow -->
+    <string name="onboard1_title">Neural Voice Synthesis</string>
+    <string name="onboard1_body">Turn any script into ultra-realistic speech using state of the art AI voice models.</string>
+    <string name="onboard2_title">29+ Languages &amp; Styles</string>
+    <string name="onboard2_body">Choose from professional voice actors with custom stability, similarity, and style controls.</string>
+    <string name="onboard3_title">Studio Quality Export</string>
+    <string name="onboard3_body">Replay, seek, download high-bitrate MP3/Opus audio, and manage your projects library.</string>
+    <string name="next">Next</string>
+    <string name="get_started">Get Started</string>
+
+    <!-- Auxiliary Studio Screen Strings (for Templates) -->
+    <string name="home_greeting">Welcome back, %s</string>
+    <string name="home_quota_stat">%1$s / %2$s chars used this period</string>
+    <string name="toast_download_success">Audio saved to Downloads</string>
+    <string name="dialogue_title">Dialogue Studio</string>
+    <string name="long_script_title">Long Script Studio</string>
+    <string name="audio_studio_title">Audio Studio</string>
+    <string name="voice_cloning_title">Voice Cloning Studio</string>
+    <string name="admin_console_title">Admin Console</string>
+
+    <!-- Legal Notices -->
+    <string name="terms_body">AI Voice Studio Terms of Service\n\n1. Acceptance of Terms\nBy accessing or using AI Voice Studio, you agree to be bound by these Terms of Service.\n\n2. Authorized Usage\nYou agree to generate speech only for content that you have full rights or permissions to synthesize. Impersonation of living persons without explicit legal consent is strictly prohibited.\n\n3. Data Storage &amp; Privacy\nGenerated audio and submitted text are stored securely and scoped exclusively to your user account.\n\n4. Intellectual Property\nYou retain ownership of the text scripts you submit and the generated audio, subject to provider terms.</string>
+    <string name="privacy_body">AI Voice Studio Privacy Policy\n\n1. Information We Collect\nWe collect your account email, display name, and generated project scripts to provide speech synthesis features.\n\n2. Provider Keys\nThird-party voice provider API keys reside strictly on the backend server and are never transmitted to or stored on client devices.\n\n3. Deletion Rights\nYou may delete individual audio generations, projects, or your entire account at any time from the app.\n\n4. Contact\nFor questions, contact the app developer.</string>
+    <string name="licenses_body">Open Source Notices\n\n- AndroidX Libraries (Apache-2.0)\n- Google Material Components (Apache-2.0)\n- AndroidX Media3 / ExoPlayer (Apache-2.0)\n- Square Retrofit &amp; OkHttp (Apache-2.0)\n- Google Gson (Apache-2.0)</string>
 </resources>
