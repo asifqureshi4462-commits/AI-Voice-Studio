@@ -2,3 +2,8 @@
 <string name="open_in_create">Open in Create</string>
 <string name="favourite">Favourite</string>
 <string name="preview_voice">Preview voice</string>
+<string name="nav_home">Home</string>
+<string name="nav_create">Create</string>
+<string name="nav_voices">Voices</string>
+<string name="nav_library">Library</string>
+<string name="nav_profile">Profile</string>
