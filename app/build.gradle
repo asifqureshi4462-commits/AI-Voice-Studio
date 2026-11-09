@@ -12,8 +12,7 @@ android {
         targetSdk 35
         versionCode 1
         versionName '1.0.0'
-        // Public backend URL only. API keys for the voice provider live on the backend and never in the APK.
-        buildConfigField 'String', 'DEFAULT_BACKEND_URL', "\"${project.findProperty('backendUrl') ?: ''}\""
+        buildConfigField 'String', 'DEFAULT_BACKEND_URL', "\"${project.findProperty('backendUrl') ?: 'https://ai-voice-studio-kdad.onrender.com/'}\""
     }
 
     buildTypes {
