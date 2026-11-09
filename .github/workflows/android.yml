@@ -42,6 +42,9 @@ jobs:
 
       - name: Set up Android SDK (accepts licences)
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default includes the obsolete `tools` package.
+          packages: platform-tools
 
       - name: Validate Gradle wrapper (only when a wrapper JAR is committed)
         if: ${{ hashFiles('gradle/wrapper/gradle-wrapper.jar') != '' }}
