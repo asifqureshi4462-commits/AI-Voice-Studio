@@ -29,6 +29,10 @@
     <string name="selected">Selected</string>
     <string name="welcome">Welcome to AI Voice Studio</string>
 
+    <!-- Added missing strings -->
+    <string name="more_actions">More actions</string>
+    <string name="open_in_create">Open in Create</string>
+
     <!-- Auth Strings -->
     <string name="login">Sign In</string>
     <string name="signup">Sign Up</string>
@@ -108,6 +112,8 @@
     <string name="no_favourite_voices_loaded">No favorite voices saved yet.</string>
     <string name="add_favourite">Add to favourites</string>
     <string name="remove_favourite">Remove from favourites</string>
+    <string name="favourite">Favourite</string>
+    <string name="preview_voice">Preview voice</string>
     <string name="sort_by">Sort voices by</string>
     <string name="sort_name_asc">Name (A–Z)</string>
     <string name="sort_name_desc">Name (Z–A)</string>
@@ -181,7 +187,7 @@
     <string name="get_started">Get Started</string>
 
     <!-- Legal Boilerplate -->
-    <string name="terms_body">AI Voice Studio Terms of Service\n\n1. Acceptance of Terms\nBy accessing or using AI Voice Studio, you agree to be bound by these Terms of Service.\n\n2. Authorized Usage\nYou agree to generate speech only for content that you have full rights or permissions to synthesize. Impersonation of living persons without explicit legal consent is strictly prohibited.\n\n3. Data Storage &amp; Privacy\nGenerated audio and submitted text are stored securely and scoped exclusively to your user account.\n\n4. Intellectual Property\nYou retain ownership of the text scripts you submit and the generated audio, subject to provider terms.</string>
-    <string name="privacy_body">AI Voice Studio Privacy Policy\n\n1. Information We Collect\nWe collect your account email, display name, and generated project scripts to provide speech synthesis features.\n\n2. Provider Keys\nThird-party voice provider API keys reside strictly on the backend server and are never transmitted to or stored on client devices.\n\n3. Deletion Rights\nYou may delete individual audio generations, projects, or your entire account at any time from the app.\n\n4. Contact\nFor questions, contact the app developer.</string>
-    <string name="licenses_body">Open Source Notices\n\n- AndroidX Libraries (Apache-2.0)\n- Google Material Components (Apache-2.0)\n- AndroidX Media3 / ExoPlayer (Apache-2.0)\n- Square Retrofit &amp; OkHttp (Apache-2.0)\n- Google Gson (Apache-2.0)</string>
+    <string name="terms_body">AI Voice Studio Terms of Service\n\n1. Acceptance of Terms\nBy accessing or using AI Voice Studio, you agree to be bound by these Terms of Service.\n\n2. Authorized ...</string>
+    <string name="privacy_body">AI Voice Studio Privacy Policy\n\n1. Information We Collect\nWe collect your account email, display name, and generated project scripts to provide speech synthesis ...</string>
+    <string name="licenses_body">Open Source Notices\n\n- AndroidX Libraries (Apache-2.0)\n- Google Material Components (Apache-2.0)\n- AndroidX Media3 / ExoPlayer (Apache-2.0)\n- Square Retrofit ...</string>
 </resources>
