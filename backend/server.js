@@ -6,13 +6,12 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
 
 const app = express();
 
 // --- Configuration ---
 const PORT = process.env.PORT || 8080;
-const JWT_SECRET = process.env.JWT_SECRET || 'avs_jwt_secret_key_production_32_characters_minimum_len!';
+const JWT_SECRET = process.env.JWT_SECRET || 'avs_production_jwt_secret_key_minimum_32_chars!';
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || '';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'app.db');
 const AUDIO_DIR = process.env.AUDIO_DIR || path.join(__dirname, 'data', 'audio');
@@ -20,11 +19,11 @@ const MAIL_WEBHOOK_URL = process.env.MAIL_WEBHOOK_URL || '';
 const FREE_MONTHLY_CHARS = parseInt(process.env.FREE_MONTHLY_CHARS || '100000', 10);
 const ACCESS_TOKEN_EXPIRY = '2h';
 
-// Ensure data directories exist
+// Ensure required directories exist
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
-// --- SQLite / JSON Fallback Persistent Database ---
+// --- Persistent Database Setup (SQLite with JSON Fallback) ---
 let dbSync = null;
 let isNativeSqlite = false;
 
@@ -33,12 +32,11 @@ try {
   dbSync = new DatabaseSync(DB_PATH);
   isNativeSqlite = true;
 } catch (e) {
-  // If node:sqlite is not supported in the active Node version, use file-backed storage
   dbSync = null;
   isNativeSqlite = false;
 }
 
-const jsonDbPath = path.join(path.dirname(DB_PATH), 'store.json');
+const jsonStorePath = path.join(path.dirname(DB_PATH), 'store.json');
 let memoryStore = {
   users: [],
   refreshTokens: [],
@@ -49,19 +47,19 @@ let memoryStore = {
 };
 
 function loadJsonStore() {
-  if (fs.existsSync(jsonDbPath)) {
+  if (fs.existsSync(jsonStorePath)) {
     try {
-      memoryStore = JSON.parse(fs.readFileSync(jsonDbPath, 'utf8'));
+      memoryStore = JSON.parse(fs.readFileSync(jsonStorePath, 'utf8'));
     } catch (err) {
-      console.error('Error loading JSON database:', err);
+      console.error('Error loading JSON storage:', err);
     }
   }
 }
 
 function saveJsonStore() {
-  const tmpPath = jsonDbPath + '.tmp';
+  const tmpPath = jsonStorePath + '.tmp';
   fs.writeFileSync(tmpPath, JSON.stringify(memoryStore, null, 2), 'utf8');
-  fs.renameSync(tmpPath, jsonDbPath);
+  fs.renameSync(tmpPath, jsonStorePath);
 }
 
 if (isNativeSqlite) {
@@ -107,8 +105,6 @@ if (isNativeSqlite) {
       duration_ms INTEGER,
       bytes INTEGER,
       settings_json TEXT,
-      error_code TEXT,
-      error_message TEXT,
       created_at INTEGER NOT NULL,
       completed_at INTEGER
     );
@@ -143,27 +139,24 @@ const db = {
   findUserByEmail(email) {
     const clean = (email || '').trim().toLowerCase();
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('SELECT * FROM users WHERE LOWER(email) = ?');
-      return stmt.get(clean) || null;
+      return dbSync.prepare('SELECT * FROM users WHERE LOWER(email) = ?').get(clean) || null;
     }
     return memoryStore.users.find(u => u.email.toLowerCase() === clean) || null;
   },
 
   findUserById(id) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('SELECT * FROM users WHERE id = ?');
-      return stmt.get(id) || null;
+      return dbSync.prepare('SELECT * FROM users WHERE id = ?').get(id) || null;
     }
     return memoryStore.users.find(u => u.id === id) || null;
   },
 
   createUser(user) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare(`
+      dbSync.prepare(`
         INSERT INTO users (id, name, email, password_hash, role, plan, email_verified, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-      stmt.run(user.id, user.name, user.email, user.password_hash, user.role, user.plan, user.email_verified ? 1 : 0, user.created_at);
+      `).run(user.id, user.name, user.email, user.password_hash, user.role, user.plan, user.email_verified ? 1 : 0, user.created_at);
     } else {
       memoryStore.users.push(user);
       saveJsonStore();
@@ -173,8 +166,7 @@ const db = {
 
   updateUserName(id, name) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('UPDATE users SET name = ? WHERE id = ?');
-      stmt.run(name, id);
+      dbSync.prepare('UPDATE users SET name = ? WHERE id = ?').run(name, id);
     } else {
       const u = memoryStore.users.find(x => x.id === id);
       if (u) { u.name = name; saveJsonStore(); }
@@ -183,8 +175,7 @@ const db = {
 
   updateUserPassword(id, hash) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('UPDATE users SET password_hash = ? WHERE id = ?');
-      stmt.run(hash, id);
+      dbSync.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, id);
     } else {
       const u = memoryStore.users.find(x => x.id === id);
       if (u) { u.password_hash = hash; saveJsonStore(); }
@@ -210,8 +201,7 @@ const db = {
 
   saveRefreshToken(tokenHash, userId, expiresAt) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('INSERT INTO refresh_tokens (token_hash, user_id, expires_at, revoked) VALUES (?, ?, ?, 0)');
-      stmt.run(tokenHash, userId, expiresAt);
+      dbSync.prepare('INSERT INTO refresh_tokens (token_hash, user_id, expires_at, revoked) VALUES (?, ?, ?, 0)').run(tokenHash, userId, expiresAt);
     } else {
       memoryStore.refreshTokens.push({ token_hash: tokenHash, user_id: userId, expires_at: expiresAt, revoked: 0 });
       saveJsonStore();
@@ -220,8 +210,7 @@ const db = {
 
   findRefreshToken(tokenHash) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('SELECT * FROM refresh_tokens WHERE token_hash = ?');
-      return stmt.get(tokenHash) || null;
+      return dbSync.prepare('SELECT * FROM refresh_tokens WHERE token_hash = ?').get(tokenHash) || null;
     }
     return memoryStore.refreshTokens.find(x => x.token_hash === tokenHash) || null;
   },
@@ -246,8 +235,7 @@ const db = {
 
   savePasswordReset(token, email, expiresAt) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('INSERT INTO password_resets (token, email, expires_at, used) VALUES (?, ?, ?, 0)');
-      stmt.run(token, email, expiresAt);
+      dbSync.prepare('INSERT INTO password_resets (token, email, expires_at, used) VALUES (?, ?, ?, 0)').run(token, email, expiresAt);
     } else {
       memoryStore.passwordResets.push({ token, email, expires_at: expiresAt, used: 0 });
       saveJsonStore();
@@ -256,8 +244,7 @@ const db = {
 
   findPasswordReset(token) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare('SELECT * FROM password_resets WHERE token = ?');
-      return stmt.get(token) || null;
+      return dbSync.prepare('SELECT * FROM password_resets WHERE token = ?').get(token) || null;
     }
     return memoryStore.passwordResets.find(x => x.token === token) || null;
   },
@@ -306,19 +293,17 @@ const db = {
 
   saveGeneration(gen) {
     if (isNativeSqlite) {
-      const stmt = dbSync.prepare(`
+      dbSync.prepare(`
         INSERT INTO generations (
           id, user_id, project_id, provider, model, voice_id, text_preview, text,
           output_format, status, audio_asset_id, char_count, duration_ms, bytes,
-          settings_json, error_code, error_message, created_at, completed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-      stmt.run(
+          settings_json, created_at, completed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
         gen.id, gen.user_id, gen.project_id || null, gen.provider, gen.model, gen.voice_id,
         gen.text_preview, gen.text, gen.output_format, gen.status, gen.audio_asset_id,
         gen.char_count, gen.duration_ms || null, gen.bytes || null,
-        gen.settings_json || null, gen.error_code || null, gen.error_message || null,
-        gen.created_at, gen.completed_at || null
+        gen.settings_json || null, gen.created_at, gen.completed_at || null
       );
     } else {
       memoryStore.generations.unshift(gen);
@@ -337,9 +322,7 @@ const db = {
         query += ' AND (text_preview LIKE ? OR model LIKE ?)';
         params.push(`%${q}%`, `%${q}%`);
       }
-      const countStmt = dbSync.prepare(`SELECT COUNT(*) as total FROM (${query})`);
-      const total = countStmt.get(...params).total;
-
+      const total = dbSync.prepare(`SELECT COUNT(*) as total FROM (${query})`).get(...params).total;
       query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
       params.push(limit, offset);
       const rows = dbSync.prepare(query).all(...params);
@@ -473,7 +456,7 @@ const db = {
   }
 };
 
-// --- Security Helpers ---
+// --- Security Functions ---
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const derived = crypto.scryptSync(password, salt, 64).toString('hex');
@@ -503,7 +486,7 @@ function signAccessToken(user) {
 function generateRefreshToken(userId) {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = hashToken(rawToken);
-  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 days
+  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
   db.saveRefreshToken(tokenHash, userId, expiresAt);
   return rawToken;
 }
@@ -522,9 +505,8 @@ function sanitizeUser(u) {
 
 // --- Middlewares ---
 app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '4mb' }));
 
-// Auth token verification middleware
 function requireAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -554,17 +536,17 @@ function requireAuth(req, res, next) {
   }
 }
 
-// --- API Router ---
+// --- Main Router ---
 const api = express.Router();
 
 // 1. SIGN UP
 api.post('/auth/signup', (req, res) => {
   const { name, email, password } = req.body || {};
   if (!name || name.trim().length === 0 || name.length > 80) {
-    return res.status(400).json({ ok: false, error: { code: 'invalid_name', message: 'Please enter your name.' } });
+    return res.status(400).json({ ok: false, error: { code: 'invalid_name', message: 'Please enter your full name.' } });
   }
   if (!email || !email.includes('@')) {
-    return res.status(400).json({ ok: false, error: { code: 'invalid_email', message: 'A valid email address is required.' } });
+    return res.status(400).json({ ok: false, error: { code: 'invalid_email', message: 'Please enter a valid email address.' } });
   }
   if (!password || password.length < 8) {
     return res.status(400).json({ ok: false, error: { code: 'weak_password', message: 'Password must be at least 8 characters long.' } });
@@ -647,7 +629,6 @@ api.post('/auth/refresh', (req, res) => {
     return res.status(401).json({ ok: false, error: { code: 'session_expired', message: 'Session expired. Please sign in again.' } });
   }
 
-  // Rotate token
   db.revokeRefreshToken(tHash);
 
   const user = db.findUserById(record.user_id);
@@ -679,15 +660,14 @@ api.post('/auth/forgot-password', async (req, res) => {
   const clean = email.trim().toLowerCase();
   const user = db.findUserByEmail(clean);
 
-  // Generate 12-char secure alphanumeric reset code
+  // Generate 12-character secure alphanumeric token
   const resetToken = crypto.randomBytes(6).toString('hex').toUpperCase();
-  const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+  const expiresAt = Date.now() + 60 * 60 * 1000;
 
   if (user) {
     db.savePasswordReset(resetToken, clean, expiresAt);
     console.log(`[AUTH] Password reset requested for ${clean}. Reset code: ${resetToken}`);
 
-    // If mail webhook is configured, dispatch notification
     if (MAIL_WEBHOOK_URL) {
       try {
         await fetch(MAIL_WEBHOOK_URL, {
@@ -705,7 +685,6 @@ api.post('/auth/forgot-password', async (req, res) => {
     }
   }
 
-  // Always return success for user privacy
   res.status(200).json({
     ok: true,
     data: {
@@ -755,7 +734,7 @@ api.post('/auth/logout', (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// 7. VERIFY & RESEND
+// 7. VERIFY EMAIL
 api.post('/auth/verify-email', (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
@@ -780,7 +759,7 @@ api.post('/auth/change-password', requireAuth, (req, res) => {
   }
 
   if (newPassword.length < 8) {
-    return res.status(400).json({ ok: false, error: { code: 'weak_password', message: 'New password must be at least 8 characters.' } });
+    return res.status(400).json({ ok: false, error: { code: 'weak_password', message: 'New password must be at least 8 characters long.' } });
   }
 
   db.updateUserPassword(user.id, hashPassword(newPassword));
@@ -789,7 +768,7 @@ api.post('/auth/change-password', requireAuth, (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// 9. CURRENT USER
+// 9. PROFILE & ACCOUNT
 api.get('/me', requireAuth, (req, res) => {
   const user = db.findUserById(req.user.id);
   const counts = db.getUserCounts(req.user.id);
@@ -832,17 +811,29 @@ api.delete('/account', requireAuth, (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// 10. ELEVENLABS VOICES
+// 10. PROVIDERS
+api.get('/providers', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    data: {
+      defaultProvider: 'elevenlabs',
+      providers: [
+        { id: 'elevenlabs', label: 'ElevenLabs', configured: Boolean(ELEVENLABS_API_KEY), isDefault: true, outputFormats: ['mp3_44100_128', 'mp3_44100_64', 'opus_48000_128'], maxChars: 10000 }
+      ]
+    }
+  });
+});
+
+// 11. VOICES
 api.get('/voices', async (req, res) => {
   if (!ELEVENLABS_API_KEY) {
-    // Provide offline voices catalog if key not yet added
     return res.status(200).json({
       ok: true,
       data: {
         voices: [
           { voiceId: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel', category: 'conversational', description: 'Calm, natural, and friendly.', previewUrl: 'https://storage.googleapis.com/eleven-public-prod/previews/voices/21m00Tcm4TlvDq8ikWAM/preview.mp3', labels: { accent: 'American', gender: 'Female' }, languages: [] },
           { voiceId: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', category: 'narration', description: 'Deep, warm, and authoritative.', previewUrl: 'https://storage.googleapis.com/eleven-public-prod/previews/voices/pNInz6obpgDQGcFmaJgB/preview.mp3', labels: { accent: 'American', gender: 'Male' }, languages: [] },
-          { voiceId: 'ErXwobaYiN019PkySvjV', name: 'Antoni', category: 'narration', description: 'Well-rounded, crisp, and articulate.', previewUrl: 'https://storage.googleapis.com/eleven-public-prod/previews/voices/ErXwobaYiN019PkySvjV/preview.mp3', labels: { accent: 'American', gender: 'Male' }, languages: [] }
+          { voiceId: 'ErXwobaYiN019PkySvjV', name: 'Antoni', category: 'narration', description: 'Crisp, articulate, and expressive.', previewUrl: 'https://storage.googleapis.com/eleven-public-prod/previews/voices/ErXwobaYiN019PkySvjV/preview.mp3', labels: { accent: 'American', gender: 'Male' }, languages: [] }
         ],
         hasMore: false,
         nextPageToken: null,
@@ -858,7 +849,7 @@ api.get('/voices', async (req, res) => {
     if (!upstream.ok) {
       return res.status(upstream.status).json({
         ok: false,
-        error: { code: 'provider_error', message: 'Failed to fetch voices from ElevenLabs.' }
+        error: { code: 'provider_error', message: 'Failed to fetch voices from provider.' }
       });
     }
 
@@ -887,14 +878,15 @@ api.get('/voices', async (req, res) => {
   }
 });
 
-// 11. MODELS
+// 12. MODELS
 api.get('/models', (req, res) => {
   res.status(200).json({
     ok: true,
     data: {
+      provider: 'elevenlabs',
       models: [
-        { modelId: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2', description: 'Lifelike speech in 29+ languages.', maxCharacters: 10000, canUseStyle: true, canUseSpeakerBoost: true, languages: [] },
-        { modelId: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5', description: 'Ultra-fast low-latency synthesis.', maxCharacters: 10000, canUseStyle: false, canUseSpeakerBoost: true, languages: [] },
+        { modelId: 'eleven_multilingual_v2', name: 'Eleven Multilingual v2', description: 'Ultra-realistic lifelike speech.', maxCharacters: 10000, canUseStyle: true, canUseSpeakerBoost: true, languages: [] },
+        { modelId: 'eleven_turbo_v2_5', name: 'Eleven Turbo v2.5', description: 'Fast low-latency synthesis.', maxCharacters: 10000, canUseStyle: false, canUseSpeakerBoost: true, languages: [] },
         { modelId: 'eleven_monolingual_v1', name: 'Eleven English v1', description: 'Classic English synthesis.', maxCharacters: 5000, canUseStyle: false, canUseSpeakerBoost: false, languages: [] }
       ],
       outputFormats: [
@@ -904,12 +896,21 @@ api.get('/models', (req, res) => {
         'opus_48000_128',
         'opus_48000_64'
       ],
+      capabilities: {
+        stability: true,
+        similarity: true,
+        style: true,
+        speakerBoost: true,
+        speed: true,
+        speedMin: 0.7,
+        speedMax: 1.2
+      },
       maxTextChars: 10000
     }
   });
 });
 
-// 12. TEXT TO SPEECH (TTS)
+// 13. TTS SYNTHESIS
 api.post('/tts', requireAuth, async (req, res) => {
   const { text, voiceId, modelId, outputFormat, voiceSettings, projectId } = req.body || {};
 
@@ -917,19 +918,15 @@ api.post('/tts', requireAuth, async (req, res) => {
     return res.status(400).json({ ok: false, error: { code: 'invalid_text', message: 'Script text cannot be empty.' } });
   }
   if (!voiceId) {
-    return res.status(400).json({ ok: false, error: { code: 'invalid_voice', message: 'Voice ID is required.' } });
+    return res.status(400).json({ ok: false, error: { code: 'invalid_voice', message: 'Voice selection is required.' } });
   }
 
-  // Quota check
   const { used } = db.getMonthlyCharsUsed(req.user.id);
   const requestedChars = text.length;
   if (used + requestedChars > FREE_MONTHLY_CHARS) {
     return res.status(402).json({
       ok: false,
-      error: {
-        code: 'usage_limit_exceeded',
-        message: 'Monthly character limit reached. Upgrade plan in Studio Admin.'
-      }
+      error: { code: 'usage_limit_exceeded', message: 'Monthly character limit reached.' }
     });
   }
 
@@ -1017,7 +1014,7 @@ api.post('/tts', requireAuth, async (req, res) => {
   }
 });
 
-// 13. USAGE
+// 14. USAGE
 api.get('/usage', requireAuth, (req, res) => {
   const { used, count } = db.getMonthlyCharsUsed(req.user.id);
   const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
@@ -1027,7 +1024,7 @@ api.get('/usage', requireAuth, (req, res) => {
     ok: true,
     data: {
       plan: req.user.plan,
-      note: 'Monthly Studio Usage Quota',
+      note: 'Monthly Studio Quota',
       limitChars: FREE_MONTHLY_CHARS,
       usedChars: used,
       remainingChars: Math.max(0, FREE_MONTHLY_CHARS - used),
@@ -1038,7 +1035,7 @@ api.get('/usage', requireAuth, (req, res) => {
   });
 });
 
-// 14. AUDIO ASSET RETRIEVAL & STREAMING
+// 15. AUDIO RETRIEVAL
 api.get('/audio/:id', requireAuth, (req, res) => {
   const assetId = req.params.id;
   const mp3 = path.join(AUDIO_DIR, `${assetId}.mp3`);
@@ -1081,7 +1078,7 @@ api.patch('/audio/:id', requireAuth, (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// 15. GENERATIONS (HISTORY)
+// 16. GENERATIONS
 api.get('/generations', requireAuth, (req, res) => {
   const { q, limit, offset } = req.query;
   const { rows, total } = db.getGenerations(req.user.id, q, parseInt(limit, 10), parseInt(offset, 10));
@@ -1119,7 +1116,7 @@ api.delete('/generations/:id', requireAuth, (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// 16. PROJECTS
+// 17. PROJECTS
 api.get('/projects', requireAuth, (req, res) => {
   const { q, favorite, limit, offset } = req.query;
   const favBool = favorite === 'true' ? true : favorite === 'false' ? false : null;
@@ -1209,7 +1206,7 @@ api.delete('/projects/:id', requireAuth, (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// 17. FAVORITE VOICES
+// 18. FAVORITES
 api.get('/favorites/voices', requireAuth, (req, res) => {
   const voices = db.getFavorites(req.user.id);
   res.status(200).json({ ok: true, data: { voices } });
@@ -1226,12 +1223,12 @@ api.delete('/favorites/voices/:id', requireAuth, (req, res) => {
   res.status(200).json({ ok: true, data: {} });
 });
 
-// --- Register Routes under both /v1 and /api/v1 (and /api) to eliminate 404s ---
+// --- Register All Route Prefixes ---
 app.use('/v1', api);
 app.use('/api/v1', api);
 app.use('/api', api);
 
-// Health check endpoint
+// Health check
 app.get('/healthz', (req, res) => {
   res.status(200).json({ ok: true, status: 'healthy', providerConfigured: Boolean(ELEVENLABS_API_KEY) });
 });
@@ -1240,13 +1237,13 @@ app.get('/', (req, res) => {
   res.status(200).send('AI Voice Studio Backend is running.');
 });
 
-// 404 handler for unmapped routes
+// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     ok: false,
     error: {
       code: 'not_found',
-      message: `The requested endpoint '${req.method} ${req.originalUrl}' does not exist on this server.`
+      message: `The endpoint '${req.method} ${req.originalUrl}' does not exist.`
     }
   });
 });
@@ -1254,5 +1251,5 @@ app.use((req, res) => {
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`AI Voice Studio Backend running on port ${PORT}`);
-  console.log(`ElevenLabs Provider: ${ELEVENLABS_API_KEY ? 'Configured (Active)' : 'Not Configured'}`);
+  console.log(`ElevenLabs Key Configured: ${Boolean(ELEVENLABS_API_KEY)}`);
 });
