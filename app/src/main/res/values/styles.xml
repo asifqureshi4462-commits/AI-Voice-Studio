@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Typography Styles -->
+    <style name="Text.Section" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/app_text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Elevated Card Style for AI Voice Studio -->
+    <style name="Widget.AIVoiceStudio.ElevatedCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardElevation">2dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/stroke_subtle</item>
+        <item name="cardBackgroundColor">@color/bg_card</item>
+    </style>
+
+    <!-- Primary Action Button Style -->
+    <style name="Widget.AIVoiceStudio.PrimaryButton" parent="Widget.Material3.Button">
+        <item name="android:textColor">#04121A</item>
+        <item name="backgroundTint">@color/brand_cyan</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+
+    <!-- Bottom Sheet Theme -->
+    <style name="CustomBottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Material3.BottomSheet</item>
+    </style>
+</resources>
