@@ -1,146 +1,123 @@
 package com.asifqureshi.aivoicestudio.ui.main;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageButton;
-import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import com.example.R;
-import com.asifqureshi.aivoicestudio.audio.AudioPlayerManager;
-import com.asifqureshi.aivoicestudio.audio.AudioProcessingUtils;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.asifqureshi.aivoicestudio.App;
+import com.asifqureshi.aivoicestudio.R;
+import com.asifqureshi.aivoicestudio.ui.auth.LoginActivity;
 import com.asifqureshi.aivoicestudio.ui.home.HomeFragment;
 import com.asifqureshi.aivoicestudio.ui.library.LibraryFragment;
 import com.asifqureshi.aivoicestudio.ui.profile.ProfileFragment;
-import com.asifqureshi.aivoicestudio.ui.tts.TtsFragment;
+import com.asifqureshi.aivoicestudio.ui.tts.CreateFragment;
 import com.asifqureshi.aivoicestudio.ui.voices.VoicesFragment;
+import com.asifqureshi.aivoicestudio.utils.InsetsUtil;
+import com.asifqureshi.aivoicestudio.viewmodels.SharedViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.card.MaterialCardView;
 
+/** Hosts the five tabs. Fragments are kept alive (show/hide) so each tab preserves its state. */
 public class MainActivity extends AppCompatActivity {
-    private BottomNavigationView bottomNav;
-    private MaterialCardView miniPlayerContainer;
-    private ImageButton btnMiniPlayPause, btnMiniClose;
-    private TextView tvMiniTitle, tvMiniTime;
-    private AudioPlayerManager playerManager;
+    public static final int TAB_HOME = 0, TAB_CREATE = 1, TAB_VOICES = 2, TAB_LIBRARY = 3, TAB_PROFILE = 4;
+    private static final String[] TAGS = {"home", "create", "voices", "library", "profile"};
+    private static final int[] MENU_IDS = {R.id.nav_home, R.id.nav_create, R.id.nav_voices, R.id.nav_library, R.id.nav_profile};
 
-    private final Fragment homeFragment = new HomeFragment();
-    private final Fragment ttsFragment = new TtsFragment();
-    private final Fragment voicesFragment = new VoicesFragment();
-    private final Fragment libraryFragment = new LibraryFragment();
-    private final Fragment profileFragment = new ProfileFragment();
-    private Fragment activeFragment = homeFragment;
+    private BottomNavigationView nav;
+    private int current = TAB_HOME;
+    private String lastProvider;
+    private SharedViewModel sharedVm;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        InsetsUtil.applySystemBars(findViewById(R.id.root), true, false);
+        nav = findViewById(R.id.bottomNav);
 
-        playerManager = AudioPlayerManager.getInstance(this);
-
-        bottomNav = findViewById(R.id.bottomNavigation);
-        miniPlayerContainer = findViewById(R.id.miniPlayerContainer);
-        btnMiniPlayPause = findViewById(R.id.btnMiniPlayPause);
-        btnMiniClose = findViewById(R.id.btnMiniClose);
-        tvMiniTitle = findViewById(R.id.tvMiniTitle);
-        tvMiniTime = findViewById(R.id.tvMiniTime);
-
-        // Setup fragments
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragmentContainer, profileFragment, "5").hide(profileFragment)
-                .add(R.id.fragmentContainer, libraryFragment, "4").hide(libraryFragment)
-                .add(R.id.fragmentContainer, voicesFragment, "3").hide(voicesFragment)
-                .add(R.id.fragmentContainer, ttsFragment, "2").hide(ttsFragment)
-                .add(R.id.fragmentContainer, homeFragment, "1")
-                .commit();
-
-        bottomNav.setOnItemSelectedListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                switchFragment(homeFragment);
-                return true;
-            } else if (itemId == R.id.nav_create) {
-                switchFragment(ttsFragment);
-                return true;
-            } else if (itemId == R.id.nav_voices) {
-                switchFragment(voicesFragment);
-                return true;
-            } else if (itemId == R.id.nav_library) {
-                switchFragment(libraryFragment);
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                switchFragment(profileFragment);
-                return true;
+        FragmentManager fm = getSupportFragmentManager();
+        if (savedInstanceState == null) {
+            FragmentTransaction t = fm.beginTransaction().setReorderingAllowed(true);
+            Fragment[] fs = {new HomeFragment(), new CreateFragment(), new VoicesFragment(), new LibraryFragment(), new ProfileFragment()};
+            for (int i = 0; i < fs.length; i++) {
+                t.add(R.id.fragmentContainer, fs[i], TAGS[i]);
+                if (i != TAB_HOME) t.hide(fs[i]);
             }
+            t.commit();
+        } else {
+            current = savedInstanceState.getInt("tab", TAB_HOME);
+        }
+
+        nav.setOnItemSelectedListener(item -> {
+            for (int i = 0; i < MENU_IDS.length; i++) if (MENU_IDS[i] == item.getItemId()) { showTab(i); return true; }
             return false;
         });
+        nav.setSelectedItemId(MENU_IDS[current]);
 
-        setupMiniPlayer();
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                if (current != TAB_HOME) nav.setSelectedItemId(MENU_IDS[TAB_HOME]);
+                else finish();
+            }
+        });
+
+        final SharedViewModel shared = new ViewModelProvider(this).get(SharedViewModel.class);
+        sharedVm = shared;
+        lastProvider = App.from(this).prefs.getProvider();
+        shared.loadModels(false);
+        shared.loadFavorites();
+        shared.tabRequest.observe(this, tab -> {
+            if (tab != null) { nav.setSelectedItemId(MENU_IDS[tab]); shared.tabRequest.setValue(null); }
+        });
+
+        App.from(this).apiClient.sessionExpired.observe(this, expired -> {
+            if (Boolean.TRUE.equals(expired)) {
+                App.from(this).authRepository.clearLocalSession();
+                Intent i = new Intent(this, LoginActivity.class);
+                i.putExtra(LoginActivity.EXTRA_SESSION_EXPIRED, true);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                App.from(this).apiClient.sessionExpired.setValue(false);
+                startActivity(i);
+                finish();
+            }
+        });
     }
 
-    public void selectTab(int navItemId) {
-        bottomNav.setSelectedItemId(navItemId);
+    private void showTab(int index) {
+        if (index == current && getSupportFragmentManager().findFragmentByTag(TAGS[index]) != null
+                && !getSupportFragmentManager().findFragmentByTag(TAGS[index]).isHidden()) return;
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction t = fm.beginTransaction().setReorderingAllowed(true);
+        for (int i = 0; i < TAGS.length; i++) {
+            Fragment f = fm.findFragmentByTag(TAGS[i]);
+            if (f == null) continue;
+            if (i == index) t.show(f); else t.hide(f);
+        }
+        t.commit();
+        current = index;
     }
 
-    private void switchFragment(Fragment target) {
-        if (activeFragment != target) {
-            getSupportFragmentManager().beginTransaction()
-                    .hide(activeFragment)
-                    .show(target)
-                    .commit();
-            activeFragment = target;
+    @Override protected void onResume() {
+        super.onResume();
+        String now = App.from(this).prefs.getProvider();
+        if (!java.util.Objects.equals(now, lastProvider) && sharedVm != null) {
+            // The voice provider changed in Settings: voices, models and favourites belong to the old provider.
+            lastProvider = now;
+            sharedVm.selectedVoice.setValue(null);
+            sharedVm.loadModels(true);
+            sharedVm.loadFavorites();
+            new ViewModelProvider(this).get(com.asifqureshi.aivoicestudio.viewmodels.VoicesViewModel.class).reload();
         }
     }
 
-    private void setupMiniPlayer() {
-        btnMiniPlayPause.setOnClickListener(v -> {
-            if (playerManager.isPlaying()) {
-                playerManager.pause();
-                btnMiniPlayPause.setImageResource(R.drawable.ic_play_arrow);
-            } else {
-                playerManager.resume();
-                btnMiniPlayPause.setImageResource(R.drawable.ic_pause);
-            }
-        });
-
-        btnMiniClose.setOnClickListener(v -> {
-            playerManager.stop();
-            miniPlayerContainer.setVisibility(View.GONE);
-        });
-
-        playerManager.setListener(new AudioPlayerManager.PlayerListener() {
-            @Override
-            public void onPlaybackStateChanged(boolean isPlaying) {
-                if (playerManager.getCurrentDataSource() != null && !playerManager.getCurrentDataSource().isEmpty()) {
-                    miniPlayerContainer.setVisibility(View.VISIBLE);
-                }
-                btnMiniPlayPause.setImageResource(isPlaying ? R.drawable.ic_pause : R.drawable.ic_play_arrow);
-            }
-
-            @Override
-            public void onProgressUpdate(long currentPositionMs, long durationMs) {
-                if (miniPlayerContainer.getVisibility() == View.VISIBLE) {
-                    tvMiniTime.setText(String.format("%s / %s",
-                            AudioProcessingUtils.formatDuration(currentPositionMs),
-                            AudioProcessingUtils.formatDuration(durationMs)));
-                }
-            }
-
-            @Override
-            public void onCompleted() {
-                btnMiniPlayPause.setImageResource(R.drawable.ic_play_arrow);
-            }
-
-            @Override
-            public void onError(String error) {}
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (isFinishing()) {
-            playerManager.release();
-        }
+    @Override protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("tab", current);
     }
 }

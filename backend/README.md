@@ -1,44 +1,19 @@
-# AI Voice Studio Backend Server
-**Developer:** Asif Qureshi  
-**Platform:** Node.js / Express  
-**Purpose:** Secure proxy & authentication gateway for ElevenLabs AI Voice Synthesis.
+# AI Voice Studio backend
 
----
+Zero-dependency Node.js (≥ 22.13) API. See the root `README.md` for setup.
 
-## Architecture & Security Highlights
+* `npm start` / `npm test` / `npm run make-admin -- user@example.com`
+* All routes are under `/v1` (JSON envelope `{ok, data}` or `{ok:false, error:{code,message,details?}}`), plus `/healthz`, `/verify-email`, `/admin`.
+* Authenticated routes need `Authorization: Bearer <access token>`; admin routes additionally need the `admin` role (checked on every request).
 
-1. **Zero Secret Leakage:** The ElevenLabs API key remains strictly on this backend server. Client APKs connect to `/api/v1/...` and never need embedded keys.
-2. **Rate Limiting:** Built-in `express-rate-limit` prevents API quota exhaustion and DDoS attacks.
-3. **Audio Streaming:** Seamlessly pipes high-fidelity MPEG audio stream directly from ElevenLabs to the Android app.
-4. **Direct Mode Fallback:** Android client also supports direct testing if an individual developer enters their own API key in Settings.
-
----
-
-## Setup & Running Locally
-
-### 1. Install Dependencies
-```bash
-cd backend
-npm install
-```
-
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Fill in your `ELEVENLABS_API_KEY`:
-```env
-PORT=5000
-ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
-```
-
-### 3. Start the Server
-```bash
-npm start
-```
-The server will start on `http://localhost:5000`.
-
-### 4. Connect with Android App
-- If running on Android Studio Emulator: set backend URL to `http://10.0.2.2:5000/api/` in app Settings.
-- If deployed to Render, Railway, Heroku, or VPS: set backend URL to `https://your-domain.com/api/`.
+| Area | Routes |
+|---|---|
+| Auth | `POST /v1/auth/{signup,login,refresh,logout,forgot-password,reset-password,verify-email,resend-verification,change-password}` |
+| Account | `GET/PATCH /v1/me`, `DELETE /v1/account` |
+| Provider | `GET /v1/voices`, `GET /v1/models` |
+| Speech | `POST /v1/tts` (returns audio bytes; headers `X-Generation-Id`, `X-Audio-Asset-Id`, `X-Usage-Remaining`), `GET /v1/usage` |
+| Audio | `GET /v1/audio/:id` (Range supported), `PATCH /v1/audio/:id`, `DELETE /v1/audio/:id` |
+| History | `GET /v1/generations`, `GET|DELETE /v1/generations/:id` |
+| Projects | `GET|POST /v1/projects`, `GET|PATCH|DELETE /v1/projects/:id`, `POST /v1/projects/:id/duplicate` |
+| Favourites | `GET /v1/favorites/voices`, `PUT|DELETE /v1/favorites/voices/:voiceId` |
+| Admin | `GET /v1/admin/{stats,users,audit,provider}`, `PATCH /v1/admin/users/:id` |

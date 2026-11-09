@@ -1,139 +1,124 @@
 package com.asifqureshi.aivoicestudio.ui.home;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.example.R;
-import com.asifqureshi.aivoicestudio.data.models.ProjectItem;
-import com.asifqureshi.aivoicestudio.data.models.UserProfile;
-import com.asifqureshi.aivoicestudio.data.repository.PreferencesManager;
-import com.asifqureshi.aivoicestudio.data.repository.ProjectDatabaseHelper;
-import com.asifqureshi.aivoicestudio.ui.cloning.VoiceCloningActivity;
-import com.asifqureshi.aivoicestudio.ui.dialogue.DialogueActivity;
-import com.asifqureshi.aivoicestudio.ui.library.ProjectAdapter;
-import com.asifqureshi.aivoicestudio.ui.longscript.LongScriptActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.asifqureshi.aivoicestudio.R;
+import com.asifqureshi.aivoicestudio.network.ApiModels.FavoriteVoice;
+import com.asifqureshi.aivoicestudio.network.ApiModels.Generation;
+import com.asifqureshi.aivoicestudio.ui.library.HistoryBinder;
 import com.asifqureshi.aivoicestudio.ui.main.MainActivity;
-import com.asifqureshi.aivoicestudio.ui.studio.AudioStudioActivity;
-import java.util.List;
+import com.asifqureshi.aivoicestudio.utils.Format;
+import com.asifqureshi.aivoicestudio.viewmodels.AccountViewModel;
+import com.asifqureshi.aivoicestudio.viewmodels.SharedViewModel;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+
+import java.util.Calendar;
 
 public class HomeFragment extends Fragment {
-    private TextView tvGreeting, tvQuotaStat, tvEmptyRecent;
-    private ProgressBar pbQuota;
-    private RecyclerView rvRecentProjects;
-    private ProjectAdapter projectAdapter;
-    private PreferencesManager prefs;
-    private ProjectDatabaseHelper dbHelper;
+    private AccountViewModel vm;
+    private SharedViewModel shared;
+    private SwipeRefreshLayout swipe;
+    private TextView textGreeting, textAvatar, textUsage, textHomeError, textFavEmpty, textRecentEmpty;
+    private LinearProgressIndicator progressUsage;
+    private ChipGroup chipFavs;
+    private ViewGroup listRecent;
+    private String firstName = "";
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-
-        prefs = new PreferencesManager(requireContext());
-        dbHelper = new ProjectDatabaseHelper(requireContext());
-
-        tvGreeting = view.findViewById(R.id.tvGreeting);
-        tvQuotaStat = view.findViewById(R.id.tvQuotaStat);
-        pbQuota = view.findViewById(R.id.pbQuota);
-        tvEmptyRecent = view.findViewById(R.id.tvEmptyRecent);
-        rvRecentProjects = view.findViewById(R.id.rvRecentProjects);
-
-        setupUserProfile();
-        setupQuickActions(view);
-        setupRecentProjects();
-
-        return view;
+    @Nullable @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle state) {
+        return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
-    private void setupUserProfile() {
-        UserProfile user = prefs.getUserProfile();
-        tvGreeting.setText(getString(R.string.home_greeting, user.getName()));
+    @Override public void onViewCreated(@NonNull View v, @Nullable Bundle state) {
+        vm = new ViewModelProvider(requireActivity()).get(AccountViewModel.class);
+        shared = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+        swipe = v.findViewById(R.id.swipe);
+        textGreeting = v.findViewById(R.id.textGreeting); textAvatar = v.findViewById(R.id.textAvatar);
+        textUsage = v.findViewById(R.id.textUsage); textHomeError = v.findViewById(R.id.textHomeError);
+        textFavEmpty = v.findViewById(R.id.textFavEmpty); textRecentEmpty = v.findViewById(R.id.textRecentEmpty);
+        progressUsage = v.findViewById(R.id.progressUsage); chipFavs = v.findViewById(R.id.chipFavs);
+        listRecent = v.findViewById(R.id.listRecent);
 
-        long used = user.getCharactersUsed();
-        long limit = Math.max(1, user.getCharactersLimit());
-        int percent = (int) ((used * 100) / limit);
+        swipe.setOnRefreshListener(() -> vm.refreshAll());
+        textAvatar.setOnClickListener(x -> shared.tabRequest.setValue(MainActivity.TAB_PROFILE));
+        v.findViewById(R.id.btnSearch).setOnClickListener(x -> shared.tabRequest.setValue(MainActivity.TAB_VOICES));
+        v.findViewById(R.id.btnQuickCreate).setOnClickListener(x -> shared.tabRequest.setValue(MainActivity.TAB_CREATE));
+        v.findViewById(R.id.btnQuickVoices).setOnClickListener(x -> shared.tabRequest.setValue(MainActivity.TAB_VOICES));
+        v.findViewById(R.id.btnQuickLibrary).setOnClickListener(x -> shared.tabRequest.setValue(MainActivity.TAB_LIBRARY));
 
-        pbQuota.setProgress(Math.min(100, percent));
-        tvQuotaStat.setText(getString(R.string.home_quota_stat, String.format("%,d", used), String.format("%,d", limit)));
-    }
-
-    private void setupQuickActions(View view) {
-        view.findViewById(R.id.btnHeaderProfile).setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).selectTab(R.id.nav_profile);
+        vm.me.observe(getViewLifecycleOwner(), res -> {
+            if (res == null) return;
+            if (res.isSuccess()) {
+                String name = res.data.user.name == null ? "" : res.data.user.name;
+                firstName = name.trim().split("\\s+")[0];
+                textAvatar.setText(Format.initials(name));
+                textGreeting.setText(getString(greetingRes(), firstName));
+                textHomeError.setVisibility(View.GONE);
+            } else if (res.isError()) {
+                textGreeting.setText(R.string.welcome);
+                textHomeError.setText(res.failure.message);
+                textHomeError.setVisibility(View.VISIBLE);
+            }
+            swipe.setRefreshing(res.isLoading() && swipe.isRefreshing());
+        });
+        vm.usage.observe(getViewLifecycleOwner(), res -> {
+            if (res == null) return;
+            if (res.isSuccess()) {
+                long limit = res.data.limitChars, used = res.data.usedChars;
+                progressUsage.setVisibility(View.VISIBLE);
+                progressUsage.setProgress(limit > 0 ? (int) Math.min(100, used * 100 / limit) : 0);
+                textUsage.setText(getString(R.string.usage_detail, used, limit, res.data.remainingChars, res.data.generationsThisPeriod));
+            } else if (res.isError()) {
+                progressUsage.setVisibility(View.GONE);
+                textUsage.setText(R.string.usage_unavailable);
             }
         });
-
-        view.findViewById(R.id.cardQuickTts).setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).selectTab(R.id.nav_create);
+        vm.favorites.observe(getViewLifecycleOwner(), res -> {
+            if (res == null || !res.isSuccess()) return;
+            chipFavs.removeAllViews();
+            for (FavoriteVoice f : res.data.voices) {
+                Chip c = new Chip(requireContext());
+                c.setText(f.name != null ? f.name : f.voiceId);
+                c.setOnClickListener(x -> { shared.selectVoice(f.voiceId, f.name != null ? f.name : f.voiceId); shared.tabRequest.setValue(MainActivity.TAB_CREATE); });
+                chipFavs.addView(c);
             }
+            textFavEmpty.setVisibility(res.data.voices.isEmpty() ? View.VISIBLE : View.GONE);
         });
-
-        view.findViewById(R.id.cardQuickDialogue).setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), DialogueActivity.class));
-        });
-
-        view.findViewById(R.id.cardQuickLongScript).setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), LongScriptActivity.class));
-        });
-
-        view.findViewById(R.id.cardQuickAudioEditor).setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), AudioStudioActivity.class));
-        });
-
-        view.findViewById(R.id.cardQuickCloning).setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), VoiceCloningActivity.class));
-        });
-
-        view.findViewById(R.id.btnViewAllRecent).setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).selectTab(R.id.nav_library);
+        vm.recent.observe(getViewLifecycleOwner(), res -> {
+            if (res == null) return;
+            if (!res.isLoading()) swipe.setRefreshing(false);
+            if (!res.isSuccess()) return;
+            listRecent.removeAllViews();
+            for (Generation g : res.data.generations) {
+                View row = getLayoutInflater().inflate(R.layout.item_history, listRecent, false);
+                HistoryBinder.bind(row, g, false);
+                row.setOnClickListener(x -> shared.tabRequest.setValue(MainActivity.TAB_LIBRARY));
+                listRecent.addView(row);
             }
+            textRecentEmpty.setVisibility(res.data.generations.isEmpty() ? View.VISIBLE : View.GONE);
         });
+        vm.refreshAll();
     }
 
-    private void setupRecentProjects() {
-        rvRecentProjects.setLayoutManager(new LinearLayoutManager(requireContext()));
-        projectAdapter = new ProjectAdapter(requireContext(), item -> {
-            // Open in audio studio
-            Intent intent = new Intent(requireContext(), AudioStudioActivity.class);
-            intent.putExtra("AUDIO_PATH", item.getAudioPath());
-            intent.putExtra("AUDIO_TITLE", item.getTitle());
-            startActivity(intent);
-        });
-        rvRecentProjects.setAdapter(projectAdapter);
-
-        loadRecentProjects();
+    private int greetingRes() {
+        int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        return h < 12 ? R.string.greeting_morning : h < 18 ? R.string.greeting_afternoon : R.string.greeting_evening;
     }
 
-    private void loadRecentProjects() {
-        List<ProjectItem> all = dbHelper.getAllProjects();
-        if (all.isEmpty()) {
-            tvEmptyRecent.setVisibility(View.VISIBLE);
-            rvRecentProjects.setVisibility(View.GONE);
-        } else {
-            tvEmptyRecent.setVisibility(View.GONE);
-            rvRecentProjects.setVisibility(View.VISIBLE);
-            // Show at most 4 recent items on dashboard
-            List<ProjectItem> subList = all.subList(0, Math.min(4, all.size()));
-            projectAdapter.setProjects(subList);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        setupUserProfile();
-        loadRecentProjects();
+    @Override public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden && vm != null) vm.refreshAll(); // refresh when the tab is shown again
     }
 }

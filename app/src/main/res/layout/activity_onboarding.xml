@@ -1,70 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_dark">
+    android:background="@color/app_bg"
+    android:orientation="vertical">
 
-    <!-- Skip Button -->
-    <TextView
-        android:id="@+id/btnSkip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:padding="8dp"
-        android:text="@string/onboarding_skip"
-        android:textColor="@color/brand_cyan"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/brand_logo" />
 
-    <!-- ViewPager for slides -->
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPagerOnboarding"
+        android:id="@+id/pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomControls"
-        android:layout_below="@id/btnSkip" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <!-- Bottom Controls -->
-    <LinearLayout
-        android:id="@+id/bottomControls"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/dots"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="24dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="28dp">
+        android:background="@android:color/transparent"
+        app:tabBackground="@drawable/bg_dot"
+        app:tabGravity="center"
+        app:tabIndicatorHeight="0dp"
+        app:tabPaddingEnd="8dp"
+        app:tabPaddingStart="8dp" />
 
-        <!-- Page Indicator text / dots -->
-        <TextView
-            android:id="@+id/tvPageIndicator"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSkip"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1 / 3"
-            android:textColor="@color/text_tertiary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:text="@string/skip" />
 
         <View
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <!-- Next / Get Started Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
-            style="@style/Widget.AIVoiceStudio.PrimaryButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="140dp"
-            android:text="@string/onboarding_next"
-            app:icon="@drawable/ic_chevron_right"
-            app:iconGravity="textEnd" />
+            android:text="@string/next" />
     </LinearLayout>
-</RelativeLayout>
+</LinearLayout>

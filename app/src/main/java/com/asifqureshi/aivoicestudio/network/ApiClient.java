@@ -78,7 +78,7 @@ public final class ApiClient {
     }
 
     private static boolean isPublicAuthPath(String path) {
-        return (path.contains("/v1/auth/") || path.contains("/auth/")) && !path.endsWith("change-password");
+        return path.contains("/v1/auth/") && !path.endsWith("change-password");
     }
 
     private Interceptor bearer() {
