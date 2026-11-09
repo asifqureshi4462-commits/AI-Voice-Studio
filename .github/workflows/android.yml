@@ -1,51 +1,86 @@
-name: Android CI Build
+name: Android CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [main, master]
   pull_request:
-    branches: [ "main", "master" ]
   workflow_dispatch:
 
-jobs:
-  build:
-    name: Build Android APK & Run Tests
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend tests
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run backend test suite
+        working-directory: backend
+        run: npm test
+
+  build-apk:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
 
-      - name: Grant Execute Permission for Gradle
-        run: chmod +x gradlew || true
+      - name: Set up Android SDK (accepts licences)
+        uses: android-actions/setup-android@v3
 
-      - name: Run Unit Tests
-        run: gradle testDebugUnitTest --no-daemon
+      - name: Validate Gradle wrapper (only when a wrapper JAR is committed)
+        if: ${{ hashFiles('gradle/wrapper/gradle-wrapper.jar') != '' }}
+        uses: gradle/actions/wrapper-validation@v4
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+      - name: Set up Gradle 8.9 with caching
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
 
-      - name: Verify APK Exists
+      - name: Static project checks (resources, references, imports, syntax)
+        run: python3 tools/check_project.py
+
+      - name: Unit tests and debug build
+        # BACKEND_URL is an optional, NON-secret repository variable (Settings > Secrets and variables > Actions > Variables).
         run: |
-          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
-            echo "Debug APK successfully generated!"
-            ls -lh app/build/outputs/apk/debug/app-debug.apk
-          else
-            echo "ERROR: APK not found at app/build/outputs/apk/debug/app-debug.apk"
-            find . -name "*.apk"
-            exit 1
-          fi
+          if [ -f gradle/wrapper/gradle-wrapper.jar ] && [ -f gradlew ]; then GRADLE=./gradlew; else GRADLE=gradle; fi
+          $GRADLE --no-daemon --stacktrace testDebugUnitTest assembleDebug -PbackendUrl="${{ vars.BACKEND_URL }}"
 
-      - name: Upload Debug APK Artifact
+      - name: Verify the APK exists
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          test -f "$APK" || { echo "::error::APK not found at $APK"; find app/build -name '*.apk'; exit 1; }
+          ls -l "$APK"
+
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: ai-voice-studio-apk
+          name: AI-Voice-Studio-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload test and lint reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: ignore
